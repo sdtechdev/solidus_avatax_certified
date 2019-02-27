@@ -23,10 +23,14 @@ class Spree::AvataxConfiguration < Spree::Preferences::Configuration
   end
 
   def self.environment
-    if Rails.env.production?
-      :production
-    else
-      :sandbox
-    end
+    # if Rails.env.production?
+    #   :production
+    # else
+    #   :sandbox
+    # end
+
+    # currently we don't have :sandbox account, but separate :production account being used as
+    # sandbox so it has API url similar to prod hence we need this change
+    :production
   end
 end
