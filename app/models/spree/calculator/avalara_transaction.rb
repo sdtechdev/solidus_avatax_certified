@@ -40,7 +40,7 @@ module Spree
       address = order.ship_address
 
       return false unless Spree::Avatax::Config.tax_calculation
-      return false unless %w(cart payment).include?(order.state)
+      return false unless %w(cart payment complete).include?(order.state)
       return false if address.nil?
       return false unless calculable.zone.include?(address)
 
