@@ -6,7 +6,7 @@ module SolidusAvataxCertified
           createTransactionModel: {
             code: order.number,
             date: doc_date,
-            discount: order.all_adjustments.promotion.eligible.sum(:amount).abs.to_s,
+            discount: order.discount_for_tax.to_s,
             commit: @commit,
             type: @doc_type ? @doc_type : 'SalesOrder',
             lines: sales_lines
