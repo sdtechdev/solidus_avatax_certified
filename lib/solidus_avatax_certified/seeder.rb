@@ -7,7 +7,7 @@ module SolidusAvataxCertified
         create_tax
         add_tax_category_to_shipping_methods
         add_tax_category_to_products
-        populate_default_stock_location
+        # populate_default_stock_location
 
         puts "***** SOLIDUS AVATAX CERTIFIED *****"
         puts ""
