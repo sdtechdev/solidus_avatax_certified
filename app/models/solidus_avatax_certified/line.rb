@@ -58,7 +58,7 @@ module SolidusAvataxCertified
         number: "#{shipment.id}-FR",
         itemCode: shipment.shipping_method.name,
         quantity: 1,
-        amount: shipment.discounted_amount.to_f,
+        amount: shipment_cost(shipment),
         description: 'Shipping Charge',
         taxCode: shipment.shipping_method_tax_code,
         discounted: false,
@@ -156,6 +156,11 @@ module SolidusAvataxCertified
 
     def tax_included_in_price?(item)
       !!rates_for_item(item).try(:first)&.included_in_price
+    end
+
+    def shipment_cost(shipment)
+      cost = shipment.discounted_amount.to_f
+      cost.positive? ? order.taxable_shipping_total.to_f : 0
     end
   end
 end
