@@ -32,7 +32,7 @@ module SolidusAvataxCertified
         quantity: line_item.quantity,
         amount: line_item.amount.to_f,
         discounted: true,
-        taxIncluded: tax_included_in_price?(line_item),
+        taxIncluded: false,
         addresses: {
           shipFrom: get_stock_location(line_item),
           shipTo: ship_to
@@ -62,7 +62,7 @@ module SolidusAvataxCertified
         description: 'Shipping Charge',
         taxCode: shipment.shipping_method_tax_code,
         discounted: false,
-        taxIncluded: tax_included_in_price?(shipment),
+        taxIncluded: false,
         addresses: {
           shipFrom: shipment.stock_location.to_avatax_hash,
           shipTo: ship_to
@@ -152,10 +152,6 @@ module SolidusAvataxCertified
 
     def business_id_no
       order.user.try(:vat_id)
-    end
-
-    def tax_included_in_price?(item)
-      !!rates_for_item(item).try(:first)&.included_in_price
     end
 
     def shipment_cost(shipment)
