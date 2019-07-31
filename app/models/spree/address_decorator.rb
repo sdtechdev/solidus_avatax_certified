@@ -12,4 +12,11 @@ Spree::Address.class_eval do
   def self.validation_enabled_countries
     Spree::Avatax::Config.address_validation_enabled_countries
   end
+
+  def avatax_cache_key
+    key = ['Spree::Address']
+    key << address1&.downcase
+    key << zipcode
+    key.compact.join('-')
+  end
 end
