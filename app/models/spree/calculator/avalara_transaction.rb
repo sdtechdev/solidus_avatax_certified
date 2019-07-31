@@ -41,7 +41,7 @@ module Spree
       address = order.ship_address
 
       return false unless Spree::Avatax::Config.tax_calculation
-      return false if %w(address cart delivery).include?(order.state)
+      return false unless order.payment?
       return false if address.nil?
       return false unless calculable.zone.include?(address)
 
@@ -49,7 +49,7 @@ module Spree
     end
 
     def get_avalara_response(order)
-      Rails.cache.fetch(cache_key(order), time_to_idle: 5.minutes) do
+      Rails.cache.fetch(cache_key(order), time_to_idle: 15.minutes) do
         if order.can_commit?
           order.avalara_capture_finalize
         else
@@ -61,7 +61,7 @@ module Spree
 
     def long_cache_key(order)
       key = order.avatax_cache_key
-      key << (order.ship_address.try(:cache_key) || order.bill_address.try(:cache_key)).to_s
+      key << order.ship_address.avatax_cache_key if order.ship_address
       order.line_items.each do |line_item|
         key << line_item.avatax_cache_key
       end

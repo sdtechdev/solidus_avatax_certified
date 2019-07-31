@@ -15,7 +15,7 @@ Spree::LineItem.class_eval do
     key << self.id
     key << self.quantity
     key << self.price
-    key << self.promo_total
+    key << self.discounted_total
     key.join('-')
   end
 
