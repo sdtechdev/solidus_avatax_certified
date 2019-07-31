@@ -49,7 +49,7 @@ module Spree
     end
 
     def get_avalara_response(order)
-      Rails.cache.fetch(cache_key(order), time_to_idle: 5.minutes) do
+      Rails.cache.fetch(cache_key(order), time_to_idle: 15.minutes) do
         if order.can_commit?
           order.avalara_capture_finalize
         else
