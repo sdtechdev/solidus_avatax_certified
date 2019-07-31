@@ -2,10 +2,8 @@ Spree::Shipment.class_eval do
 
   def avatax_cache_key
     key = ['Spree::Shipment']
-    key << self.id
-    key << self.cost
-    key << self.stock_location.try(:cache_key)
-    key << self.promo_total
+    key << cost
+    key << stock_location&.admin_name.to_s
     key.join('-')
   end
 
