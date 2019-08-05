@@ -25,7 +25,7 @@ module SolidusAvataxCertified
 
     def item_line(line_item)
       {
-        number: "#{line_item.id}-LI",
+        number: "#{line_item.avatax_id}-LI",
         description: line_item.name[0..255],
         taxCode: line_item.tax_category.try(:tax_code) || '',
         itemCode: line_item.variant.sku,
@@ -55,7 +55,7 @@ module SolidusAvataxCertified
 
     def shipment_line(shipment)
       {
-        number: "#{shipment.id}-FR",
+        number: "#{shipment.avatax_id}-FR",
         itemCode: shipment.shipping_method.name,
         quantity: 1,
         amount: shipment_cost(shipment),
