@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.require_path = "lib"
   s.requirements << "none"
 
-  s.add_dependency "solidus_core", [">= 2.1.0", "< 2.3.0"]
+  s.add_dependency "solidus_core", [">= 2.1.0", "<= 2.3.1"]
   s.add_dependency "json", "~> 2.1"
   s.add_dependency "avatax-ruby"
   s.add_dependency "logging", "~> 2.0"
