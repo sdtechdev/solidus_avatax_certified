@@ -6,10 +6,6 @@ module SolidusAvataxCertified
         return (order.line_items + order.shipments)
       end
 
-      if order.complete? && !order.additional_tax_total.positive?
-        return (order.line_items + order.shipments)
-      end
-
       super
     end
   end
