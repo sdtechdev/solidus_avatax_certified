@@ -1,4 +1,7 @@
 Spree::Shipment.class_eval do
+  def avatax_id
+    stock_location_id
+  end
 
   def avatax_cache_key
     key = ['Spree::Shipment']

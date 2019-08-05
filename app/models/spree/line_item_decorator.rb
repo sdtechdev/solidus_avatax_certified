@@ -10,6 +10,10 @@ Spree::LineItem.class_eval do
     }
   end
 
+  def avatax_id
+    id
+  end
+
   def avatax_cache_key
     key = ['Spree::LineItem']
     key << self.id
