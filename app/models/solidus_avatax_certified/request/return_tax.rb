@@ -5,6 +5,7 @@ module SolidusAvataxCertified
       def initialize(order, opts={})
         super
         @refund = opts[:refund]
+        @override_tax = opts[:override_tax]
       end
 
       def generate
@@ -30,6 +31,8 @@ module SolidusAvataxCertified
       end
 
       def tax_override
+        return {} if @override_tax.present?
+
         {
           taxOverride: {
             type: 'TaxDate',
@@ -40,7 +43,7 @@ module SolidusAvataxCertified
       end
 
       def sales_lines
-        @sales_lines ||= SolidusAvataxCertified::Line.new(order, @doc_type, @refund).lines
+        @sales_lines ||= SolidusAvataxCertified::Line.new(order, @doc_type, @refund, @override_tax).lines
       end
     end
   end
