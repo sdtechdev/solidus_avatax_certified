@@ -5,11 +5,13 @@ module SolidusAvataxCertified
     attr_reader :order, :lines
     include Spree::Tax::TaxHelpers
 
-    def initialize(order, invoice_type, refund = nil)
+    def initialize(order, invoice_type, refund = nil, override_tax = nil)
       @order = order
       @invoice_type = invoice_type
       @lines = []
       @refund = refund
+      @refund_reason = refund&.reason
+      @override_tax = override_tax
       @refunds = []
       build_lines
     end
@@ -93,33 +95,37 @@ module SolidusAvataxCertified
     end
 
     def refund_line
-      {
-        number: "#{@refund.id}-RA",
-        itemCode: @refund.transaction_id || 'Refund',
-        quantity: 1,
-        amount: -@refund.amount.to_f,
-        description: 'Refund',
-        taxIncluded: true,
-        addresses: {
-          shipFrom: default_ship_from,
-          shipTo: ship_to
-        }
-      }.merge(base_line_hash)
+      refund_line =
+        {
+          number: "#{@refund.id}-RA",
+          itemCode: @refund.transaction_id || 'Refund',
+          quantity: 1,
+          amount: -@refund.amount.to_f,
+          description: 'Refund',
+          taxIncluded: true,
+          addresses: {
+            shipFrom: default_ship_from,
+            shipTo: ship_to
+          }
+        }.merge(base_line_hash)
+      refund_line.merge(tax_override_hash)
     end
 
     def return_item_line(line_item, quantity, amount)
-      {
-        number: "#{line_item.id}-LI",
-        description: line_item.name[0..255],
-        taxCode: line_item.tax_category.try(:tax_code) || '',
-        itemCode: line_item.variant.sku,
-        quantity: quantity,
-        amount: -amount.to_f,
-        addresses: {
-          shipFrom: get_stock_location(line_item),
-          shipTo: ship_to
-        }
-      }.merge(base_line_hash)
+      return_item_line =
+        {
+          number: "#{line_item.id}-LI",
+          description: line_item.name[0..255],
+          taxCode: line_item.tax_category.try(:tax_code) || '',
+          itemCode: line_item.variant.sku,
+          quantity: quantity,
+          amount: -amount.to_f,
+          addresses: {
+            shipFrom: get_stock_location(line_item),
+            shipTo: ship_to
+          }
+        }.merge(base_line_hash)
+      return_item_line.merge(tax_override_hash(amount))
     end
 
     def get_stock_location(li)
@@ -148,6 +154,28 @@ module SolidusAvataxCertified
         businessIdentificationNo: business_id_no,
         exemptionCode: order.user.try(:exemption_number)
       }
+    end
+
+    def tax_override_hash(amount = nil)
+      if @override_tax == 'no_tax'
+        {
+          taxOverride: {
+            type: 'TaxAmount',
+            taxAmount: 0.0,
+            reason: @refund_reason.name
+          }
+        }
+      elsif @override_tax == 'full_tax'
+        {
+          taxOverride: {
+            type: 'TaxAmount',
+            taxAmount: -(amount || @refund.amount).to_f,
+            reason: @refund_reason.name
+          }
+        }
+      else
+        {}
+      end
     end
 
     def business_id_no
