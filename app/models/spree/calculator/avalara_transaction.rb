@@ -41,7 +41,7 @@ module Spree
 
       return false unless Spree::Avatax::Config.tax_calculation
       return false unless %w[payment complete].include?(order.state)
-      return false if order.completed? && item && order.completed_at >= item.created_at
+      return false if order.completed? && item && order.completed_at >= item.created_at && !order.tax_error?
       return false if address.nil?
       return false unless calculable.zone.include?(address)
 
