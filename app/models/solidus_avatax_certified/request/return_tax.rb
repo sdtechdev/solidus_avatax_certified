@@ -12,7 +12,7 @@ module SolidusAvataxCertified
         {
           createTransactionModel: {
             code: order.number.to_s + '.' + @refund.id.to_s,
-            date: Date.today.strftime('%F'),
+            date: doc_date,
             commit: @commit,
             type: @doc_type ? @doc_type : 'ReturnOrder',
             lines: sales_lines
@@ -23,7 +23,7 @@ module SolidusAvataxCertified
       protected
 
       def doc_date
-        Date.today.strftime('%F')
+        Date.current.strftime('%F')
       end
 
       def base_tax_hash
