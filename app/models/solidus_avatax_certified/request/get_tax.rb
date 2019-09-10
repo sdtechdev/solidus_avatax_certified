@@ -17,7 +17,9 @@ module SolidusAvataxCertified
       protected
 
       def doc_date
-        order.completed? ? order.completed_at.strftime('%F') : Date.today.strftime('%F')
+        date = order.respond_to?(:doc_date) ? order.doc_date : Date.current
+
+        date.strftime('%F')
       end
     end
   end
