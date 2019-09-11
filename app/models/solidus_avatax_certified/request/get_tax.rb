@@ -16,6 +16,22 @@ module SolidusAvataxCertified
 
       protected
 
+      def base_tax_hash
+        super.merge(tax_override)
+      end
+
+      def tax_override
+        return {} unless order.completed?
+
+        {
+          taxOverride: {
+            type: 'TaxDate',
+            reason: 'Order Completion Time',
+            taxDate: order.completed_at.strftime('%F')
+          }
+        }
+      end
+
       def doc_date
         date = order.respond_to?(:doc_date) ? order.doc_date : Date.current
 
