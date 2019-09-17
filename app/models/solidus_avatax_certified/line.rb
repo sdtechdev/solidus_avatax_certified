@@ -75,22 +75,15 @@ module SolidusAvataxCertified
     def refund_lines
       return lines << refund_line if @refund.reimbursement.nil?
 
-      return_items = @refund.reimbursement.customer_return.return_items
-      inventory_units = Spree::InventoryUnit.where(id: return_items.pluck(:inventory_unit_id))
+      return_request = @refund.reimbursement.return_items.first.return_authorization.
+        return_requests.first
 
-      inventory_units.group_by(&:line_item_id).each_value do |inv_unit|
-
-        inv_unit_ids = inv_unit.map { |iu| iu.id }
-        return_items = Spree::ReturnItem.where(inventory_unit_id: inv_unit_ids)
-        quantity = inv_unit.uniq.count
-
-        amount = if return_items.first.respond_to?(:amount)
-            return_items.sum(:amount)
-        else
-          return_items.sum(:pre_tax_amount)
-        end
-
-        lines << return_item_line(inv_unit.first.line_item, quantity, amount)
+      return_request.request_items.each do |request_item|
+        lines << return_item_line(
+          request_item.line_item,
+          request_item.quantity,
+          request_item.price * request_item.quantity
+        )
       end
     end
 
