@@ -75,15 +75,27 @@ module SolidusAvataxCertified
     def refund_lines
       return lines << refund_line if @refund.reimbursement.nil?
 
-      return_request = @refund.reimbursement.return_items.first.return_authorization.
-        return_requests.first
+      return_authorization = @refund.reimbursement.return_items.first.return_authorization
+      return {} if return_authorization.nil?
 
-      return_request.request_items.each do |request_item|
-        lines << return_item_line(
-          request_item.line_item,
-          request_item.quantity,
-          request_item.price * request_item.quantity
-        )
+      if return_authorization.actual_return_items.present?
+        return_authorization.actual_return_items.each do |return_item|
+          lines << return_item_line(
+            return_item.line_item,
+            return_item.quantity,
+            return_item.price_paid * return_item.quantity
+          )
+        end
+      else
+        return_request = return_authorization.return_requests.first
+
+        return_request.request_items.each do |request_item|
+          lines << return_item_line(
+            request_item.line_item,
+            request_item.quantity,
+            request_item.price * request_item.quantity
+          )
+        end
       end
     end
 
