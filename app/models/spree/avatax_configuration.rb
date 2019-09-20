@@ -12,6 +12,8 @@ class Spree::AvataxConfiguration < Spree::Preferences::Configuration
   preference :refuse_checkout_address_validation_error, :boolean, default: false
   preference :customer_can_validate, :boolean, default: false
   preference :raise_exceptions, :boolean, default: false
+  preference :connection_retry_limit, :integer, default: 1
+  preference :connection_timout, :integer, default: 120
 
 
   def self.boolean_preferences

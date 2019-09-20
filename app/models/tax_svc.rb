@@ -86,12 +86,22 @@ class TaxSvc
     Spree::Avatax::Config.company_code
   end
 
+  def connection_retry_limit
+    Spree::Avatax::Config.connection_retry_limit
+  end
+
+  def connection_timout
+    Spree::Avatax::Config.connection_timout
+  end
+
   def client
     @client ||= Avatax::Client.new(
       username: account_number,
       password: license_key,
       env: Spree::AvataxConfiguration.environment,
-      headers: AVATAX_HEADERS
+      headers: AVATAX_HEADERS,
+      retry: connection_retry_limit,
+      timeout: connection_timout
     )
   end
 
