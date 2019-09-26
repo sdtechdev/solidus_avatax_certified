@@ -13,3 +13,4 @@ Spree::Avatax::Config.license_key = ENV['AVATAX_LICENSE_KEY'] if ENV['AVATAX_LIC
 Spree::Avatax::Config.company_code = ENV['AVATAX_COMPANY_CODE'] if ENV['AVATAX_COMPANY_CODE']
 Spree::Avatax::Config.connection_timout = ENV['CONNECTION_TIMEOUT'] if ENV['CONNECTION_TIMEOUT']
 Spree::Avatax::Config.connection_retry_limit = ENV['CONNECTION_RETRY_LIMIT'] if ENV['CONNECTION_RETRY_LIMIT']
+Spree::Avatax::Config.connection_retry_exception = ENV['CONNECTION_RETRY_EXCEPTION'] if ENV['CONNECTION_RETRY_EXCEPTION']

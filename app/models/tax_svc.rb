@@ -90,6 +90,10 @@ class TaxSvc
     Spree::Avatax::Config.connection_retry_limit
   end
 
+  def connection_retry_exception
+    Spree::Avatax::Config.connection_retry_exception
+  end
+
   def connection_timout
     Spree::Avatax::Config.connection_timout
   end
@@ -101,6 +105,7 @@ class TaxSvc
       env: Spree::AvataxConfiguration.environment,
       headers: AVATAX_HEADERS,
       retry: connection_retry_limit,
+      retry_exceptions: connection_retry_exception,
       timeout: connection_timout
     )
   end
