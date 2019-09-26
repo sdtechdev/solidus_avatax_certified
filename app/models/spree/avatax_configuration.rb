@@ -14,6 +14,7 @@ class Spree::AvataxConfiguration < Spree::Preferences::Configuration
   preference :raise_exceptions, :boolean, default: false
   preference :connection_retry_limit, :integer, default: 1
   preference :connection_timout, :integer, default: 120
+  preference :connection_retry_exception, :array, default: nil
 
 
   def self.boolean_preferences
