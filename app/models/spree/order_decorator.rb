@@ -54,6 +54,8 @@ Spree::Order.class_eval do
     key = ['Spree::Order']
     key << self.number
     key << self.item_total
+    key << self.promo_total
+    key << self.discount_for_tax
     key.join('-')
   end
 
