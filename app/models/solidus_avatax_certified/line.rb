@@ -7,11 +7,13 @@ module SolidusAvataxCertified
     attr_reader :order, :lines
     include ::Spree::Tax::TaxHelpers
 
-    def initialize(order, invoice_type, refund = nil)
+    def initialize(order, invoice_type, refund = nil, override_tax = nil)
       @order = order
       @invoice_type = invoice_type
       @lines = []
       @refund = refund
+      @refund_reason = refund&.reason
+      @override_tax = override_tax
       @refunds = []
       build_lines
     end
@@ -95,7 +97,7 @@ module SolidusAvataxCertified
     end
 
     def refund_line
-      {
+      refund_line = {
         number: "#{@refund.id}-RA",
         itemCode: truncateLine(@refund.transaction_id) || 'Refund',
         quantity: 1,
@@ -107,10 +109,12 @@ module SolidusAvataxCertified
           shipTo: ship_to
         }
       }.merge(base_line_hash)
+
+      refund_line.merge(tax_override_hash)
     end
 
     def return_item_line(line_item, quantity, amount)
-      {
+      return_item_line = {
         number: "#{line_item.id}-LI",
         description: line_item.name[0..255],
         taxCode: line_item.tax_category.try(:tax_code) || '',
@@ -122,6 +126,8 @@ module SolidusAvataxCertified
           shipTo: ship_to
         }
       }.merge(base_line_hash)
+
+      return_item_line.merge(tax_override_hash(amount))
     end
 
     def get_stock_location(li)
@@ -160,6 +166,28 @@ module SolidusAvataxCertified
 
     def business_id_no
       order.user.try(:vat_id)
+    end
+
+    def tax_override_hash(amount = nil)
+      if @override_tax == 'no_tax'
+        {
+          taxOverride: {
+            type: 'TaxAmount',
+            taxAmount: 0.0,
+            reason: @refund_reason.name
+          }
+        }
+      elsif @override_tax == 'full_tax'
+        {
+          taxOverride: {
+            type: 'TaxAmount',
+            taxAmount: -(amount || @refund.amount).to_f,
+            reason: @refund_reason.name
+          }
+        }
+      else
+        {}
+      end
     end
   end
 end
