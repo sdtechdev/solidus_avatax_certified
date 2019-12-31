@@ -53,7 +53,7 @@ module Spree
     end
 
     def get_avalara_response(order)
-      Rails.cache.fetch(cache_key(order), time_to_idle: 5.minutes) do
+      Rails.cache.fetch(cache_key(order), time_to_idle: 15.minutes) do
         if order.can_commit?
           order.avalara_capture_finalize
         else
@@ -64,7 +64,8 @@ module Spree
 
     def long_cache_key(order)
       key = order.avatax_cache_key
-      key << order.tax_address.try(:cache_key)
+      key << order.ship_address.avatax_cache_key if order.ship_address
+
       order.line_items.each do |line_item|
         key << line_item.avatax_cache_key
       end
@@ -92,7 +93,7 @@ module Spree
       return 0 if avalara_response['totalTax'] == 0.0
 
       avalara_response['lines'].each do |line|
-        if line['lineNumber'] == "#{item.id}-#{item.avatax_line_code}"
+        if line['lineNumber'] == "#{item.avatax_id}-#{item.avatax_line_code}"
           return line['taxCalculated']
         end
       end

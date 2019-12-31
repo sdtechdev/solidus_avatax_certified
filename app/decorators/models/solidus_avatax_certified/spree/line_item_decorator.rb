@@ -19,12 +19,17 @@ module SolidusAvataxCertified
         key << id
         key << quantity
         key << price
+        key << discounted_total
         key << promo_total
         key.join('-')
       end
 
       def avatax_line_code
         'LI'
+      end
+
+      def avatax_id
+        id
       end
 
       ::Spree::LineItem.prepend self

@@ -22,6 +22,13 @@ module SolidusAvataxCertified
         ::Spree::Address.validation_enabled_countries.include?(country.try(:name))
       end
 
+      def avatax_cache_key
+        key = ['Spree::Address']
+        key << address1&.downcase
+        key << zipcode
+        key.compact.join('-')
+      end
+
       ::Spree::Address.prepend self
     end
   end
