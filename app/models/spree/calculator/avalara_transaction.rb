@@ -13,7 +13,7 @@ module Spree
     def compute_shipment_or_line_item(item)
       order = item.order
 
-      if can_calculate_tax?(order)
+      if can_calculate_tax?(order, item)
         avalara_response = get_avalara_response(order)
         tax_for_item(item, avalara_response)
       else
@@ -41,11 +41,12 @@ module Spree
     # Tax Adjustments are not created or calculated until on payment page.
     # 1. We do not want to calculate tax until address is filled in and shipment type has been selected.
     # 2. VAT tax adjustments set included on adjustment creation, if the tax initially returns 0, included is set to false causing incorrect calculations.
-    def can_calculate_tax?(order)
+    def can_calculate_tax?(order, item)
       address = order.tax_address
 
       return false unless Spree::Avatax::Config.tax_calculation
-      return false if %w(address cart delivery).include?(order.state)
+      return false unless %w[payment complete].include?(order.state)
+      return false if order.completed? && item && order.completed_at >= item.created_at && !order.tax_error?
       return false if address.nil?
       return false unless calculable.zone.include?(address)
 
