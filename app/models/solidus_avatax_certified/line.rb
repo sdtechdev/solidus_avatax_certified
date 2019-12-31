@@ -63,7 +63,7 @@ module SolidusAvataxCertified
         number: "#{shipment.avatax_id}-FR",
         itemCode: truncateLine(shipment.shipping_method.name),
         quantity: 1,
-        amount: shipment.total_before_tax.to_f,
+        amount: shipment_cost(shipment),
         description: 'Shipping Charge',
         taxCode: shipment.shipping_method_tax_code,
         discounted: false,
@@ -188,6 +188,11 @@ module SolidusAvataxCertified
       else
         {}
       end
+    end
+
+    def shipment_cost(shipment)
+      cost = shipment.discounted_amount.to_f
+      cost.positive? ? order.taxable_shipping_total.to_f : 0
     end
   end
 end
