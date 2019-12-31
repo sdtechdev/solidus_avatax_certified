@@ -23,9 +23,9 @@ Gem::Specification.new do |s|
   s.requirements << 'none'
 
   solidus_version = ['>= 2.3.0', '< 3.0.0']
-  s.add_dependency 'avatax-ruby'
+  s.add_dependency 'avatax-ruby', github: 'sdtechdev/avatax', branch: 'jiffy'
   s.add_dependency 'deface', '~> 1.5'
-  s.add_dependency 'json', '~> 2.0'
+  s.add_dependency 'json', '~> 2.1'
   s.add_dependency 'logging', '~> 2.0'
   s.add_dependency 'solidus', solidus_version
   s.add_dependency 'solidus_support'
