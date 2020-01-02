@@ -59,7 +59,9 @@ module SolidusAvataxCertified
       def avatax_cache_key
         key = ['Spree::Order']
         key << number
+        key << item_total
         key << promo_total
+        key << discount_for_tax
         key.join('-')
       end
 

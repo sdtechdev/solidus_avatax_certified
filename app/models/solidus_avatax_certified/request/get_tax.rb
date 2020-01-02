@@ -4,14 +4,11 @@ module SolidusAvataxCertified
   module Request
     class GetTax < SolidusAvataxCertified::Request::Base
       def generate
-        promotion_discount = order.all_adjustments.promotion.eligible.sum(:amount).abs
-        manual_discount = order.all_adjustments.where('amount < 0').where(source: nil).eligible.sum(:amount).abs
-
         {
           createTransactionModel: {
             code: order.number,
             date: doc_date,
-            discount: (promotion_discount + manual_discount).to_s,
+            discount: order.discount_for_tax.to_s,
             commit: @commit,
             type: @doc_type || 'SalesOrder',
             lines: sales_lines
@@ -21,8 +18,26 @@ module SolidusAvataxCertified
 
       protected
 
+      def base_tax_hash
+        super.merge(tax_override)
+      end
+
+      def tax_override
+        return {} unless order.completed?
+
+        {
+          taxOverride: {
+            type: 'TaxDate',
+            reason: 'Order Completion Time',
+            taxDate: order.completed_at.strftime('%F')
+          }
+        }
+      end
+
       def doc_date
-        order.completed? ? order.completed_at.strftime('%F') : Date.today.strftime('%F')
+        date = order.respond_to?(:doc_date) ? order.doc_date : Date.current
+
+        date.strftime('%F')
       end
     end
   end

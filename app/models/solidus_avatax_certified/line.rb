@@ -7,11 +7,13 @@ module SolidusAvataxCertified
     attr_reader :order, :lines
     include ::Spree::Tax::TaxHelpers
 
-    def initialize(order, invoice_type, refund = nil)
+    def initialize(order, invoice_type, refund = nil, override_tax = nil)
       @order = order
       @invoice_type = invoice_type
       @lines = []
       @refund = refund
+      @refund_reason = refund&.reason
+      @override_tax = override_tax
       @refunds = []
       build_lines
     end
@@ -27,14 +29,14 @@ module SolidusAvataxCertified
 
     def item_line(line_item)
       {
-        number: "#{line_item.id}-LI",
+        number: "#{line_item.avatax_id}-LI",
         description: line_item.name[0..255],
         taxCode: line_item.tax_category.try(:tax_code) || '',
         itemCode: truncateLine(line_item.variant.sku),
         quantity: line_item.quantity,
         amount: line_item.amount.to_f,
-        discounted: discounted?(line_item),
-        taxIncluded: tax_included_in_price?(line_item),
+        discounted: true,
+        taxIncluded: false,
         addresses: {
           shipFrom: get_stock_location(line_item),
           shipTo: ship_to
@@ -58,14 +60,14 @@ module SolidusAvataxCertified
 
     def shipment_line(shipment)
       {
-        number: "#{shipment.id}-FR",
+        number: "#{shipment.avatax_id}-FR",
         itemCode: truncateLine(shipment.shipping_method.name),
         quantity: 1,
-        amount: shipment.total_before_tax.to_f,
+        amount: shipment_cost(shipment),
         description: 'Shipping Charge',
         taxCode: shipment.shipping_method_tax_code,
-        discounted: !shipment.promo_total.zero?,
-        taxIncluded: tax_included_in_price?(shipment),
+        discounted: false,
+        taxIncluded: false,
         addresses: {
           shipFrom: shipment.stock_location.to_avatax_hash,
           shipTo: ship_to
@@ -95,7 +97,7 @@ module SolidusAvataxCertified
     end
 
     def refund_line
-      {
+      refund_line = {
         number: "#{@refund.id}-RA",
         itemCode: truncateLine(@refund.transaction_id) || 'Refund',
         quantity: 1,
@@ -107,10 +109,12 @@ module SolidusAvataxCertified
           shipTo: ship_to
         }
       }.merge(base_line_hash)
+
+      refund_line.merge(tax_override_hash)
     end
 
     def return_item_line(line_item, quantity, amount)
-      {
+      return_item_line = {
         number: "#{line_item.id}-LI",
         description: line_item.name[0..255],
         taxCode: line_item.tax_category.try(:tax_code) || '',
@@ -122,6 +126,8 @@ module SolidusAvataxCertified
           shipTo: ship_to
         }
       }.merge(base_line_hash)
+
+      return_item_line.merge(tax_override_hash(amount))
     end
 
     def get_stock_location(li)
@@ -162,14 +168,31 @@ module SolidusAvataxCertified
       order.user.try(:vat_id)
     end
 
-    def discounted?(line_item)
-      line_item.adjustments.promotion.eligible.any? ||
-        order.adjustments.promotion.eligible.any? ||
-        order.adjustments.where('amount < 0').where(source: nil).eligible.any?
+    def tax_override_hash(amount = nil)
+      if @override_tax == 'no_tax'
+        {
+          taxOverride: {
+            type: 'TaxAmount',
+            taxAmount: 0.0,
+            reason: @refund_reason.name
+          }
+        }
+      elsif @override_tax == 'full_tax'
+        {
+          taxOverride: {
+            type: 'TaxAmount',
+            taxAmount: -(amount || @refund.amount).to_f,
+            reason: @refund_reason.name
+          }
+        }
+      else
+        {}
+      end
     end
 
-    def tax_included_in_price?(item)
-      !!rates_for_item(item).try(:first)&.included_in_price
+    def shipment_cost(shipment)
+      cost = shipment.discounted_amount.to_f
+      cost.positive? ? order.taxable_shipping_total.to_f : 0
     end
   end
 end

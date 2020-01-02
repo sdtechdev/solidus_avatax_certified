@@ -10,10 +10,10 @@ module Spree
       post_order_to_avalara(false, 'SalesOrder')
     end
 
-    def commit_avatax(invoice_dt = nil, refund = nil)
+    def commit_avatax(invoice_dt = nil, refund = nil, override_tax = nil)
       if tax_calculation_enabled?
         if %w(ReturnInvoice ReturnOrder).include?(invoice_dt)
-          post_return_to_avalara(false, invoice_dt, refund)
+          post_return_to_avalara(false, invoice_dt, refund, override_tax)
         else
           post_order_to_avalara(false, invoice_dt)
         end
@@ -22,11 +22,11 @@ module Spree
       end
     end
 
-    def commit_avatax_final(invoice_dt = nil, refund = nil)
+    def commit_avatax_final(invoice_dt = nil, refund = nil, override_tax = nil)
       if document_committing_enabled?
         if tax_calculation_enabled?
           if %w(ReturnInvoice ReturnOrder).include?(invoice_dt)
-            post_return_to_avalara(true, invoice_dt, refund)
+            post_return_to_avalara(true, invoice_dt, refund, override_tax)
           else
             post_order_to_avalara(true, invoice_dt)
           end

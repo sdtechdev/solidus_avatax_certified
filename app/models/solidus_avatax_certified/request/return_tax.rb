@@ -6,13 +6,14 @@ module SolidusAvataxCertified
       def initialize(order, opts = {})
         super
         @refund = opts[:refund]
+        @override_tax = opts[:override_tax]
       end
 
       def generate
         {
           createTransactionModel: {
             code: order.number.to_s + '.' + @refund.id.to_s,
-            date: Date.today.strftime('%F'),
+            date: doc_date,
             commit: @commit,
             type: @doc_type || 'ReturnOrder',
             lines: sales_lines
@@ -23,7 +24,7 @@ module SolidusAvataxCertified
       protected
 
       def doc_date
-        Date.today.strftime('%F')
+        Date.current.strftime('%F')
       end
 
       def base_tax_hash
@@ -31,6 +32,8 @@ module SolidusAvataxCertified
       end
 
       def tax_override
+        return {} if @override_tax.present?
+
         {
           taxOverride: {
             type: 'TaxDate',
@@ -41,7 +44,7 @@ module SolidusAvataxCertified
       end
 
       def sales_lines
-        @sales_lines ||= SolidusAvataxCertified::Line.new(order, @doc_type, @refund).lines
+        @sales_lines ||= SolidusAvataxCertified::Line.new(order, @doc_type, @refund, @override_tax).lines
       end
     end
   end

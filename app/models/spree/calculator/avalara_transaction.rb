@@ -13,7 +13,7 @@ module Spree
     def compute_shipment_or_line_item(item)
       order = item.order
 
-      if can_calculate_tax?(order)
+      if can_calculate_tax?(order, item)
         avalara_response = get_avalara_response(order)
         tax_for_item(item, avalara_response)
       else
@@ -41,11 +41,12 @@ module Spree
     # Tax Adjustments are not created or calculated until on payment page.
     # 1. We do not want to calculate tax until address is filled in and shipment type has been selected.
     # 2. VAT tax adjustments set included on adjustment creation, if the tax initially returns 0, included is set to false causing incorrect calculations.
-    def can_calculate_tax?(order)
+    def can_calculate_tax?(order, item)
       address = order.tax_address
 
       return false unless Spree::Avatax::Config.tax_calculation
-      return false if %w(address cart delivery).include?(order.state)
+      return false unless %w[payment complete].include?(order.state)
+      return false if order.completed? && item && order.completed_at >= item.created_at && !order.tax_error?
       return false if address.nil?
       return false unless calculable.zone.include?(address)
 
@@ -53,7 +54,7 @@ module Spree
     end
 
     def get_avalara_response(order)
-      Rails.cache.fetch(cache_key(order), time_to_idle: 5.minutes) do
+      Rails.cache.fetch(cache_key(order), time_to_idle: 15.minutes) do
         if order.can_commit?
           order.avalara_capture_finalize
         else
@@ -64,7 +65,8 @@ module Spree
 
     def long_cache_key(order)
       key = order.avatax_cache_key
-      key << order.tax_address.try(:cache_key)
+      key << order.ship_address.avatax_cache_key if order.ship_address
+
       order.line_items.each do |line_item|
         key << line_item.avatax_cache_key
       end
@@ -92,7 +94,7 @@ module Spree
       return 0 if avalara_response['totalTax'] == 0.0
 
       avalara_response['lines'].each do |line|
-        if line['lineNumber'] == "#{item.id}-#{item.avatax_line_code}"
+        if line['lineNumber'] == "#{item.avatax_id}-#{item.avatax_line_code}"
           return line['taxCalculated']
         end
       end
