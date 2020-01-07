@@ -68,39 +68,39 @@ class TaxSvc
   private
 
   def tax_calculation_enabled?
-    Spree::Avatax::Config.tax_calculation
+    ::Spree::Avatax::Config.tax_calculation
   end
 
   def account_number
-    Spree::Avatax::Config.account
+    ::Spree::Avatax::Config.account
   end
 
   def license_key
-    Spree::Avatax::Config.license_key
+    ::Spree::Avatax::Config.license_key
   end
 
   def raise_exceptions?
-    Spree::Avatax::Config.raise_exceptions
+    ::Spree::Avatax::Config.raise_exceptions
   end
 
   def company_code
-    Spree::Avatax::Config.company_code
+    ::Spree::Avatax::Config.company_code
   end
 
   def environment
-    Spree::Avatax::Config.environment
+    ::Spree::Avatax::Config.environment
   end
 
   def connection_retry_limit
-    Spree::Avatax::Config.connection_retry_limit
+    ::Spree::Avatax::Config.connection_retry_limit
   end
 
   def connection_retry_exception
-    Spree::Avatax::Config.connection_retry_exception
+    ::Spree::Avatax::Config.connection_retry_exception
   end
 
   def connection_timout
-    Spree::Avatax::Config.connection_timout
+    ::Spree::Avatax::Config.connection_timout
   end
 
 
