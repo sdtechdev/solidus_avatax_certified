@@ -42,6 +42,8 @@ module Spree
     # 1. We do not want to calculate tax until address is filled in and shipment type has been selected.
     # 2. VAT tax adjustments set included on adjustment creation, if the tax initially returns 0, included is set to false causing incorrect calculations.
     def can_calculate_tax?(order, item)
+      return true if order.force_tax_recalculation
+
       address = order.tax_address
 
       return false unless ::Spree::Avatax::Config.tax_calculation
@@ -54,6 +56,8 @@ module Spree
     end
 
     def get_avalara_response(order)
+      Rails.cache.delete(cache_key(order)) if order.force_tax_recalculation
+
       Rails.cache.fetch(cache_key(order), time_to_idle: 15.minutes) do
         if order.can_commit?
           order.avalara_capture_finalize
