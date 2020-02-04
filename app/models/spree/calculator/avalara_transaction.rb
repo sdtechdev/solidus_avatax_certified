@@ -56,14 +56,20 @@ module Spree
     end
 
     def get_avalara_response(order)
-      Rails.cache.delete(cache_key(order)) if order.force_tax_recalculation
-
-      Rails.cache.fetch(cache_key(order), time_to_idle: 15.minutes) do
+      Rails.cache.fetch(*cache_key_attributes(order)) do
         if order.can_commit?
           order.avalara_capture_finalize
         else
           order.avalara_capture
         end
+      end
+    end
+
+    def cache_key_attributes(order)
+      if order.force_tax_recalculation
+        [cache_key(order), expires_in: 1.minute]
+      else
+        [cache_key(order), time_to_idle: 15.minutes]
       end
     end
 
@@ -80,6 +86,7 @@ module Spree
       order.all_adjustments.non_tax.each do |adj|
         key << adj.avatax_cache_key
       end
+      key << '1' if order.force_tax_recalculation
       key
     end
 
