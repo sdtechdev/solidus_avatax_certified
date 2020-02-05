@@ -12,6 +12,8 @@ module SolidusAvataxCertified
         base.state_machine.before_transition to: :delivery,
           do: :validate_ship_address,
           if: :address_validation_enabled?
+
+        base.attr_accessor :force_tax_recalculation
       end
 
       def avalara_tax_enabled?
