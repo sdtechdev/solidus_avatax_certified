@@ -38,7 +38,7 @@ module SolidusAvataxCertified
         discounted: true,
         taxIncluded: false,
         addresses: {
-          shipFrom: get_stock_location(line_item),
+          shipFrom: ship_from_address(line_item),
           shipTo: ship_to
         }
       }.merge(base_line_hash)
@@ -69,7 +69,7 @@ module SolidusAvataxCertified
         discounted: false,
         taxIncluded: false,
         addresses: {
-          shipFrom: shipment.stock_location.to_avatax_hash,
+          shipFrom: ship_from_address(nil, shipment),
           shipTo: ship_to
         }
       }.merge(base_line_hash)
@@ -105,7 +105,7 @@ module SolidusAvataxCertified
         description: 'Refund',
         taxIncluded: true,
         addresses: {
-          shipFrom: default_ship_from,
+          shipFrom: ship_from_address,
           shipTo: ship_to
         }
       }.merge(base_line_hash)
@@ -122,7 +122,7 @@ module SolidusAvataxCertified
         quantity: quantity,
         amount: -amount.to_f,
         addresses: {
-          shipFrom: get_stock_location(line_item),
+          shipFrom: ship_from_address(line_item),
           shipTo: ship_to
         }
       }.merge(base_line_hash)
@@ -130,22 +130,8 @@ module SolidusAvataxCertified
       return_item_line.merge(tax_override_hash(amount))
     end
 
-    def get_stock_location(li)
-      inventory_units = li.inventory_units
-
-      return default_ship_from if inventory_units.blank?
-
-      stock_loc = inventory_units.first.try(:shipment).try(:stock_location)
-
-      stock_loc.nil? ? {} : stock_loc.to_avatax_hash
-    end
-
     def ship_to
       order.ship_address.to_avatax_hash
-    end
-
-    def default_ship_from
-      ::Spree::StockLocation.order_default.first.to_avatax_hash
     end
 
     def truncateLine(line)
@@ -193,6 +179,41 @@ module SolidusAvataxCertified
     def shipment_cost(shipment)
       cost = shipment.discounted_amount.to_f
       cost.positive? ? order.taxable_shipping_total.to_f : 0
+    end
+
+    def canada_ship_from
+      {
+        line1: '420 Green St',
+        line2: 'Unit 206',
+        city: 'Whitby',
+        region: 'ON',
+        country: 'CA',
+        postalCode: 'L1N8R1'
+      }
+    end
+
+    def usa_ship_from
+      {
+        line1: '1000 N West St',
+        line2: 'STE 1200',
+        city: 'Wilmington',
+        region: 'DE',
+        country: 'US',
+        postalCode: '19801'
+      }
+    end
+
+    def ship_from_address(line_item = nil, shipment = nil)
+     return canada_ship_from if order.store.canada?
+
+     stock_location = if line_item.present?
+                        line_item.inventory_units&.first&.shipment&.stock_location
+                      elsif shipment.present?
+                        shipment.stock_location
+                      end
+     return usa_ship_from unless stock_location || stock_location.state.abbr.in?(['MO','PA'])
+
+     stock_location.to_avatax_hash
     end
   end
 end
