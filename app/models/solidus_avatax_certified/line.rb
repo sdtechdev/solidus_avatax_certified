@@ -211,7 +211,7 @@ module SolidusAvataxCertified
                       elsif shipment.present?
                         shipment.stock_location
                       end
-     return usa_ship_from unless stock_location || stock_location.state.abbr.in?(['MO','PA'])
+     return usa_ship_from unless stock_location && stock_location.state.abbr.in?(['MO','PA'])
 
      stock_location.to_avatax_hash
     end
