@@ -13,17 +13,7 @@ module SolidusAvataxCertified
       end
 
       def avalara_capture_finalize
-        logger.info "Start Spree::Refund#avalara_capture_finalize for order #{payment.order.number}"
-
-        begin
-          avalara_transaction_refund = payment.order.avalara_transaction
-
-          @rtn_tax = avalara_transaction_refund.commit_avatax_final('ReturnInvoice', self)
-
-          @rtn_tax
-        rescue StandardError => e
-          logger.error(e, 'Refund Capture Finalize Error')
-        end
+        super
       end
 
       def logger
