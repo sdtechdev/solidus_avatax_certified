@@ -28,10 +28,6 @@ module SolidusAvataxCertified
         'LI'
       end
 
-      def avatax_id
-        id
-      end
-
       ::Spree::LineItem.prepend self
     end
   end

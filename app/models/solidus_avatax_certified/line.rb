@@ -29,7 +29,7 @@ module SolidusAvataxCertified
 
     def item_line(line_item)
       {
-        number: "#{line_item.avatax_id}-LI",
+        number: "#{line_item.id}-LI",
         description: line_item.name[0..255],
         taxCode: line_item.tax_category.try(:tax_code) || '',
         itemCode: truncateLine(line_item.variant.sku),
