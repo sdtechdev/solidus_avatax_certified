@@ -60,7 +60,7 @@ module SolidusAvataxCertified
 
     def shipment_line(shipment)
       {
-        number: "#{shipment.avatax_id}-FR",
+        number: "#{shipment.id}-FR",
         itemCode: truncateLine(shipment.shipping_method.name),
         quantity: 1,
         amount: shipment_cost(shipment),
