@@ -3,12 +3,9 @@
 module SolidusAvataxCertified
   module Spree
     module ShipmentDecorator
-      def avatax_id
-        stock_location_id
-      end
-
       def avatax_cache_key
         key = ['Spree::Shipment']
+        key << id
         key << cost
         key << stock_location&.admin_name.to_s
         key << promo_total
