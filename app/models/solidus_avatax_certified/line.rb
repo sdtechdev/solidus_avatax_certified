@@ -177,8 +177,8 @@ module SolidusAvataxCertified
     end
 
     def shipment_cost(shipment)
-      cost = shipment.discounted_amount.to_f
-      cost.positive? ? order.taxable_shipping_total.to_f : 0
+      cost = shipment.total_before_tax.to_f
+      cost.positive? ? cost : 0
     end
 
     def canada_ship_from
