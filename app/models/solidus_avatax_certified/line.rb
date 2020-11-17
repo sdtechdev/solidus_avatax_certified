@@ -177,7 +177,7 @@ module SolidusAvataxCertified
     end
 
     def shipment_cost(shipment)
-      cost = shipment.total_before_tax.to_f
+      cost = shipment.total_before_tax.to_f + shipment.surcharge.to_f
       cost.positive? ? cost : 0
     end
 
