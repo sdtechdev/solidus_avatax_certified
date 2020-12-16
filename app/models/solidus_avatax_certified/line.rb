@@ -5,7 +5,9 @@ require 'spree/tax/tax_helpers'
 module SolidusAvataxCertified
   class Line
     attr_reader :order, :lines
+
     include ::Spree::Tax::TaxHelpers
+    FREIGHT_TAX_CODE = 'FR000000'
 
     def initialize(order, invoice_type, refund = nil, override_tax = nil)
       @order = order
@@ -90,13 +92,16 @@ module SolidusAvataxCertified
                    return_items.sum(:amount)
                  else
                    return_items.sum(:pre_tax_amount)
-        end
+                 end
 
         lines << return_item_line(inv_unit.first.line_item, quantity, amount)
       end
     end
 
     def refund_line
+      if @refund.refund_reason_id == Spree::RefundReason.find_by(name: 'Refund shipping fee')&.id
+        tax_code = FREIGHT_TAX_CODE
+      end
       refund_line = {
         number: "#{@refund.id}-RA",
         itemCode: truncateLine(@refund.transaction_id) || 'Refund',
@@ -108,9 +113,11 @@ module SolidusAvataxCertified
           shipFrom: ship_from_address,
           shipTo: ship_to
         }
-      }.merge(base_line_hash)
+      }.merge(base_line_hash).merge(tax_override_hash)
 
-      refund_line.merge(tax_override_hash)
+      refund_line[:taxCode] = tax_code if tax_code
+
+      refund_line
     end
 
     def return_item_line(line_item, quantity, amount)
@@ -204,16 +211,16 @@ module SolidusAvataxCertified
     end
 
     def ship_from_address(line_item = nil, shipment = nil)
-     return canada_ship_from if order.store.canada?
+      return canada_ship_from if order.store.canada?
 
-     stock_location = if line_item.present?
-                        line_item.inventory_units&.first&.shipment&.stock_location
-                      elsif shipment.present?
-                        shipment.stock_location
-                      end
-     return usa_ship_from unless stock_location && order.ship_address.state.abbr.in?(['MO','PA'])
+      stock_location = if line_item.present?
+                         line_item.inventory_units&.first&.shipment&.stock_location
+                       elsif shipment.present?
+                         shipment.stock_location
+                       end
+      return usa_ship_from unless stock_location && order.ship_address.state.abbr.in?(['MO', 'PA'])
 
-     stock_location.to_avatax_hash
+      stock_location.to_avatax_hash
     end
   end
 end
