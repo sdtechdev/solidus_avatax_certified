@@ -99,7 +99,7 @@ module SolidusAvataxCertified
     end
 
     def refund_line
-      if @refund.refund_reason_id == Spree::RefundReason.find_by(name: 'Refund shipping fee')&.id
+      if @refund.refund_reason_id == ::Spree::RefundReason.find_by(name: 'Refund shipping fee')&.id
         tax_code = FREIGHT_TAX_CODE
       end
       refund_line = {
