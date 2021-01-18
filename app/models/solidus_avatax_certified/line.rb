@@ -80,7 +80,34 @@ module SolidusAvataxCertified
     def refund_lines
       return lines << refund_line if @refund.reimbursement.nil?
 
-      return_items = @refund.reimbursement.customer_return.return_items
+      # referring to
+      # https://github.com/sdtechdev/spree-jiffyshirts/blob/main/app/models/spree/reimbursement_decorator.rb#L8
+      # if it's a manual refund system will based it on return_items
+      # if it's a blended refund, total is calculated using return request items
+
+      if @order.multiple_suppliers?
+        return_items = @refund.
+                       return_items.
+                       first.
+                       return_authorization.
+                       return_requests.
+                       flat_map(&:request_items).
+                       compact
+
+        return_items.each do |item|
+          lines << return_item_line(item.line_item, item.line_item.quantity, item.total)
+        end
+
+        return lines
+      end
+
+      return_items =
+        if @refund.reimbursement.actual_return_items.any?
+          @refund.reimbursement.actual_return_items
+        else
+          @refund.reimbursement.return_items
+        end
+
       inventory_units = ::Spree::InventoryUnit.where(id: return_items.pluck(:inventory_unit_id))
 
       inventory_units.group_by(&:line_item_id).each_value do |inv_unit|
